@@ -1,16 +1,9 @@
-use amcl_wrapper::errors::SerzDeserzError;
-use amcl_wrapper::extension_field_gt::GT;
-use amcl_wrapper::field_elem::{FieldElement, FieldElementVector};
-use amcl_wrapper::group_elem::GroupElement;
-use amcl_wrapper::group_elem::GroupElementVector;
-use amcl_wrapper::group_elem_g1::G1;
-use amcl_wrapper::group_elem_g2::G2;
+use amcl_wrapper::field_elem::FieldElement;
 
 use super::common::VerKey;
 use super::simple::Signature;
-use ate_2_pairing;
 use common::{Params, VERKEY_DOMAIN_PREFIX};
-use {SignatureGroup, SignatureGroupVec, VerkeyGroup, VerkeyGroupVec};
+use {SignatureGroupVec, VerkeyGroupVec};
 
 // This is a newer but SLOWER way of doing BLS signature aggregation. This is NOT VULNERABLE to
 // rogue public key attack so does not need proof of possession.
@@ -136,8 +129,9 @@ mod tests {
     // TODO: Add more test vectors
     use super::*;
     use crate::common::Keypair;
+    use crate::SignatureGroup;
+    use amcl_wrapper::group_elem::GroupElement;
     use rand::thread_rng;
-    use rand::Rng;
 
     #[test]
     fn multi_sign_verify() {
@@ -169,7 +163,7 @@ mod tests {
                 sigs_and_ver_keys.push((sig, v));
             }
 
-            let mut asig = MultiSignature::from_sigs(&sigs_and_ver_keys);
+            let asig = MultiSignature::from_sigs(&sigs_and_ver_keys);
             assert!(MultiSignature::verify(
                 &asig,
                 &b,
@@ -177,17 +171,17 @@ mod tests {
                 &params
             ));
 
-            let mut avk = AggregatedVerKey::from_verkeys(&sigs_and_ver_keys);
+            let avk = AggregatedVerKey::from_verkeys(&sigs_and_ver_keys);
             assert!(asig.verify(&b, &avk, &params));
 
             let bs = asig.to_bytes();
-            let mut sig1 = Signature::from_bytes(&bs).unwrap();
+            let sig1 = Signature::from_bytes(&bs).unwrap();
             assert!(sig1.verify(&b, &avk, &params));
             // FIXME: Next line fails, probably something wrong with main amcl codebase.
             //assert_eq!(&asig.point.to_hex(), &sig1.point.to_hex());
 
             let bs = avk.to_bytes();
-            let mut avk1 = VerKey::from_bytes(&bs).unwrap();
+            let avk1 = VerKey::from_bytes(&bs).unwrap();
             // FIXME: Next line fails, probably something wrong with main amcl codebase.
             //assert_eq!(&avk.point.to_hex(), &avk1.point.to_hex());
             assert_eq!(avk.point.to_bytes(), avk1.point.to_bytes());
@@ -206,7 +200,7 @@ mod tests {
             point: SignatureGroup::identity(),
         };
         let vks = vec![keypair1.ver_key, keypair2.ver_key];
-        assert_eq!(MultiSignature::verify(&asig, &msg, &vks, &params), false);
+        assert!(!MultiSignature::verify(&asig, &msg, &vks, &params));
     }
 
     // TODO: New test that has benchmark for using AggregatedVerKey

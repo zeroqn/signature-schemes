@@ -3,7 +3,6 @@ use rand::{CryptoRng, Rng};
 use amcl_wrapper::errors::SerzDeserzError;
 use amcl_wrapper::field_elem::FieldElement;
 use amcl_wrapper::group_elem::GroupElement;
-use amcl_wrapper::group_elem_g2::G2;
 use VerkeyGroup;
 
 pub(crate) const MESSAGE_DOMAIN_PREFIX: [u8; 2] = [0, 0];
@@ -48,7 +47,9 @@ pub struct VerKey {
 }
 
 impl AsRef<VerKey> for VerKey {
-    fn as_ref(&self) -> &VerKey { &self }
+    fn as_ref(&self) -> &VerKey {
+        &self
+    }
 }
 
 impl VerKey {
@@ -84,7 +85,9 @@ impl Keypair {
 }
 
 impl AsRef<VerKey> for Keypair {
-    fn as_ref(&self) -> &VerKey { &self.ver_key }
+    fn as_ref(&self) -> &VerKey {
+        &self.ver_key
+    }
 }
 
 #[cfg(test)]
@@ -98,12 +101,12 @@ mod tests {
         let sk1 = SigKey::new(&mut rng);
         let sk2 = SigKey::new(&mut rng);
         let params = Params::new("test".as_bytes());
-        for mut sk in vec![sk1, sk2] {
-            let mut vk1 = VerKey::from_sigkey(&sk, &params);
+        for sk in vec![sk1, sk2] {
+            let vk1 = VerKey::from_sigkey(&sk, &params);
             debug!("{}", sk.x.to_hex());
             debug!("{}", &vk1.point.to_hex());
 
-            let mut vk2 = VerKey::from_sigkey(&sk, &params);
+            let vk2 = VerKey::from_sigkey(&sk, &params);
             debug!("{}", &vk2.point.to_hex());
 
             //assert_eq!(&vk1.point.to_hex(), &vk2.point.to_hex());
@@ -123,13 +126,13 @@ mod tests {
             assert_eq!(bs, bs2);*/
 
             let bs = vk1.to_bytes();
-            let mut vk11 = VerKey::from_bytes(&bs).unwrap();
+            let vk11 = VerKey::from_bytes(&bs).unwrap();
             // FIXME: Next line fails
             //assert_eq!(&vk1.point.to_hex(), &vk11.point.to_hex());
             assert_eq!(vk1.point.to_bytes(), vk11.point.to_bytes());
 
             let bs = sk.to_bytes();
-            let mut sk1 = SigKey::from_bytes(&bs).unwrap();
+            let sk1 = SigKey::from_bytes(&bs).unwrap();
             assert_eq!(sk1.x.to_hex(), sk.x.to_hex());
         }
     }

@@ -1,13 +1,9 @@
-use amcl_wrapper::errors::SerzDeserzError;
-use amcl_wrapper::extension_field_gt::GT;
 use amcl_wrapper::group_elem::GroupElement;
-use amcl_wrapper::group_elem_g1::G1;
-use amcl_wrapper::group_elem_g2::G2;
 
 use super::common::{SigKey, VerKey};
 use super::simple::Signature;
 use common::Params;
-use {ate_2_pairing, SignatureGroup, VerkeyGroup};
+use {SignatureGroup, VerkeyGroup};
 
 // This is an older but FASTER way of doing BLS signature aggregation but it IS VULNERABLE to rogue
 // public key attack. Use the proof of possession before trusting a new Verkey.
@@ -15,18 +11,18 @@ use {ate_2_pairing, SignatureGroup, VerkeyGroup};
 pub struct ProofOfPossession {}
 impl ProofOfPossession {
     // Used for domain separation while creating Proof of Possession
-    const PoP_DOMAIN_PREFIX: [u8; 2] = [2, 2];
+    const POP_DOMAIN_PREFIX: [u8; 2] = [2, 2];
 
     pub fn generate(verkey: &VerKey, sigkey: &SigKey) -> Signature {
         Signature::new(
-            &[&Self::PoP_DOMAIN_PREFIX, verkey.to_bytes().as_slice()].concat(),
+            &[&Self::POP_DOMAIN_PREFIX, verkey.to_bytes().as_slice()].concat(),
             &sigkey,
         )
     }
 
     pub fn verify(proof: &Signature, verkey: &VerKey, params: &Params) -> bool {
         proof.verify(
-            &[&Self::PoP_DOMAIN_PREFIX, verkey.to_bytes().as_slice()].concat(),
+            &[&Self::POP_DOMAIN_PREFIX, verkey.to_bytes().as_slice()].concat(),
             verkey,
             params,
         )
@@ -73,7 +69,6 @@ mod tests {
     // TODO: Add more test vectors
     use super::*;
     use crate::common::Keypair;
-    use rand::Rng;
     use rand::thread_rng;
 
     #[test]

@@ -1,8 +1,5 @@
 use amcl_wrapper::errors::SerzDeserzError;
-use amcl_wrapper::extension_field_gt::GT;
 use amcl_wrapper::group_elem::{GroupElement, GroupElementVector};
-use amcl_wrapper::group_elem_g1::G1;
-use amcl_wrapper::group_elem_g2::G2;
 
 use super::common::{SigKey, VerKey};
 use amcl_wrapper::field_elem::{FieldElement, FieldElementVector};
@@ -164,7 +161,7 @@ mod tests {
         let msg3 = "Some message to sign, making it bigger, ......, still bigger........................, not some entropy, hu2jnnddsssiu8921n ckhddss2222";
         for m in vec![msg, msg1, msg2, msg3] {
             let b = m.as_bytes();
-            let mut sig = Signature::new(&b, &sk);
+            let sig = Signature::new(&b, &sk);
             assert!(sig.verify(&b, &vk, &params));
 
             let bs = sig.to_bytes();
