@@ -68,7 +68,9 @@ impl ThresholdScheme {
         }
         // theshold signature = sig[i]^l for all i
         Signature {
-            point: s_bases.multi_scalar_mul_const_time(&s_exps).unwrap(),
+            point: s_bases
+                .multi_scalar_mul_const_time(s_exps.as_ref())
+                .unwrap(),
         }
     }
 
@@ -92,7 +94,9 @@ impl ThresholdScheme {
         // threshold verkey = vk_1^l_1 * vk_2^l_2 * ... vk_i^l_i for i in threshold
 
         VerKey {
-            point: vk_bases.multi_scalar_mul_var_time(&vk_exps).unwrap(),
+            point: vk_bases
+                .multi_scalar_mul_var_time(vk_exps.as_ref())
+                .unwrap(),
         }
     }
 }

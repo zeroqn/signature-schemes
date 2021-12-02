@@ -61,7 +61,7 @@ impl Signature {
             // multiplication is moved to message when messages are in G1 and verkey in G2.
             vs.push(&vk.point * &r_vec[i]);
         }
-        let aggr_sig = sigs.multi_scalar_mul_var_time(&r_vec).unwrap();
+        let aggr_sig = sigs.multi_scalar_mul_var_time(r_vec.as_ref()).unwrap();
         let mut pairings = hs
             .iter()
             .zip(vs.iter())
@@ -111,23 +111,33 @@ impl Signature {
 }
 
 impl AsRef<Signature> for Signature {
-    fn as_ref(&self) -> &Signature { &self }
+    fn as_ref(&self) -> &Signature {
+        &self
+    }
 }
 
 impl AsRef<Signature> for (Signature, VerKey) {
-    fn as_ref(&self) -> &Signature { &self.0 }
+    fn as_ref(&self) -> &Signature {
+        &self.0
+    }
 }
 
 impl AsRef<Signature> for (VerKey, Signature) {
-    fn as_ref(&self) -> &Signature { &self.1 }
+    fn as_ref(&self) -> &Signature {
+        &self.1
+    }
 }
 
 impl AsRef<VerKey> for (Signature, VerKey) {
-    fn as_ref(&self) -> &VerKey { &self.1 }
+    fn as_ref(&self) -> &VerKey {
+        &self.1
+    }
 }
 
 impl AsRef<VerKey> for (VerKey, Signature) {
-    fn as_ref(&self) -> &VerKey { &self.0 }
+    fn as_ref(&self) -> &VerKey {
+        &self.0
+    }
 }
 
 #[cfg(test)]
@@ -136,8 +146,8 @@ mod tests {
     // TODO: Add more test vectors
     use super::*;
     use crate::common::Keypair;
-    use rand::Rng;
     use rand::thread_rng;
+    use rand::Rng;
     use std::time::Instant;
 
     #[test]

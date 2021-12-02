@@ -44,21 +44,23 @@ impl AggregatedVerKey {
     where
         T: IntoIterator<Item = &'a V>,
         T::IntoIter: Clone,
-        V: AsRef<VerKey> + 'a
+        V: AsRef<VerKey> + 'a,
     {
         let ver_keys = ver_keys.into_iter();
         // TODO: Sort the verkeys in some order to avoid accidentally passing wrong order of keys
         let vk_bytes: Vec<_> = ver_keys.clone().map(|x| x.as_ref().to_bytes()).collect();
 
         let (hs, vks): (Vec<_>, Vec<_>) = ver_keys
-            .map(|vk| (
-                AggregatedVerKey::hashed_verkey_for_aggregation(vk.as_ref(), &vk_bytes),
-                vk.as_ref().point.clone(),
-            ))
+            .map(|vk| {
+                (
+                    AggregatedVerKey::hashed_verkey_for_aggregation(vk.as_ref(), &vk_bytes),
+                    vk.as_ref().point.clone(),
+                )
+            })
             .unzip();
 
         let avk = VerkeyGroupVec::from(vks)
-            .multi_scalar_mul_var_time(&hs.into())
+            .multi_scalar_mul_var_time(&hs)
             .unwrap();
         VerKey { point: avk }
     }
@@ -86,8 +88,7 @@ impl MultiSignature {
     where
         T: IntoIterator<Item = &'a I>,
         T::IntoIter: Clone,
-        I: AsRef<VerKey> + AsRef<Signature> + 'a
-
+        I: AsRef<VerKey> + AsRef<Signature> + 'a,
     {
         let sigs_and_ver_keys = sigs_and_ver_keys.into_iter();
         // TODO: Sort the verkeys in some order to avoid accidentally passing wrong order of keys
@@ -98,14 +99,16 @@ impl MultiSignature {
             .collect();
 
         let (hs, sigs): (Vec<_>, Vec<_>) = sigs_and_ver_keys
-            .map(|x| (
-                AggregatedVerKey::hashed_verkey_for_aggregation(x.as_ref(), &all_ver_key_bytes),
-                AsRef::<Signature>::as_ref(x).point.clone(),
-            ))
+            .map(|x| {
+                (
+                    AggregatedVerKey::hashed_verkey_for_aggregation(x.as_ref(), &all_ver_key_bytes),
+                    AsRef::<Signature>::as_ref(x).point.clone(),
+                )
+            })
             .unzip();
 
         let asig = SignatureGroupVec::from(sigs)
-            .multi_scalar_mul_var_time(&hs.into())
+            .multi_scalar_mul_var_time(&hs)
             .unwrap();
 
         Signature { point: asig }
@@ -117,7 +120,7 @@ impl MultiSignature {
     where
         T: IntoIterator<Item = &'a K>,
         T::IntoIter: Clone,
-        K: AsRef<VerKey> + 'a
+        K: AsRef<VerKey> + 'a,
     {
         let avk = AggregatedVerKey::from_verkeys(ver_keys);
         sig.verify(msg, &avk, params)
@@ -133,8 +136,8 @@ mod tests {
     // TODO: Add more test vectors
     use super::*;
     use crate::common::Keypair;
-    use rand::Rng;
     use rand::thread_rng;
+    use rand::Rng;
 
     #[test]
     fn multi_sign_verify() {
@@ -167,7 +170,12 @@ mod tests {
             }
 
             let mut asig = MultiSignature::from_sigs(&sigs_and_ver_keys);
-            assert!(MultiSignature::verify(&asig, &b, &sigs_and_ver_keys, &params));
+            assert!(MultiSignature::verify(
+                &asig,
+                &b,
+                &sigs_and_ver_keys,
+                &params
+            ));
 
             let mut avk = AggregatedVerKey::from_verkeys(&sigs_and_ver_keys);
             assert!(asig.verify(&b, &avk, &params));

@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "bls",
-    "musig",
-    "ps",
-    "delg_cred_cdd"
+    # "musig",
+    # "ps",
+    # "delg_cred_cdd"
 ]
